@@ -6,9 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"order-service/pkg/httpclient"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -28,12 +27,9 @@ type NotificationService struct {
 
 func NewNotificationService(baseURL string) *NotificationService {
 	return &NotificationService{
-		baseURL: baseURL,
-		httpClient: &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: otelhttp.NewTransport(http.DefaultTransport),
-		},
-		tracer: otel.Tracer("notification-service-client"),
+		baseURL:    baseURL,
+		httpClient: httpclient.New(),
+		tracer:     otel.Tracer("notification-service-client"),
 	}
 }
 
