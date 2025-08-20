@@ -40,7 +40,7 @@ func New(cfg *config.Config) *Server {
 
 func (s *Server) Start(ctx context.Context) error {
 	// Setup structured logging
-	observability.SetupStructuredLogging(s.config.ServiceName, s.config.Environment)
+	observability.SetupStructuredLogging(s.config.ServiceName, s.config.LogFormat)
 
 	// Initialize telemetry
 	telConfig := observability.TelemetryConfig{

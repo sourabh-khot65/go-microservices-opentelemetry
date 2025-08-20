@@ -20,10 +20,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       SERVICE_NAME: "order-service"
       NOTIFICATION_SERVICE_URL: "http://notification-service:8081"
+      LOG_FORMAT: "json"
+      ENVIRONMENT: "production"
     ports:
       - "8080:8080"
     volumes:
       - ./logs/order-service:/var/log/order-service
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - postgres
       - otel-collector
@@ -36,10 +43,17 @@ services:
       DB_DSN: "postgres://postgres:postgres@postgres:5432/online_orders?sslmode=disable"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       SERVICE_NAME: "notification-service"
+      LOG_FORMAT: "json"
+      ENVIRONMENT: "production"
     ports:
       - "8081:8081"
     volumes:
       - ./logs/notification-service:/var/log/notification-service
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - postgres
       - otel-collector
@@ -78,9 +92,12 @@ services:
     container_name: promtail
     volumes:
       - ./promtail-config.yaml:/etc/promtail/promtail.yaml
-      - ./logs/order-service:/var/log/order-service
-      - ./logs/notification-service:/var/log/notification-service
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     command: -config.file=/etc/promtail/promtail.yaml
+    depends_on:
+      - order-service
+      - notification-service
 
   prometheus:
     image: prom/prometheus:v2.52.0

@@ -9,15 +9,15 @@ import (
 )
 
 // SetupStructuredLogging configures structured logging with OpenTelemetry correlation
-func SetupStructuredLogging(serviceName, environment string) {
+func SetupStructuredLogging(serviceName, logFormat string) {
 	opts := &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
 		AddSource: true,
 	}
 
-	// Use JSON formatting in production, text in development
+	// Use JSON formatting for structured logs, text for human-readable logs
 	var handler slog.Handler
-	if environment == "production" {
+	if logFormat == "json" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, opts)
