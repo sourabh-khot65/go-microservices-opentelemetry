@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    environment:
+      PORT: 8080
+      DB_DSN: "postgres://demo:demo@postgres:5432/demo?sslmode=disable"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      SERVICE_NAME: "order-service"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs/order-service:/var/log/order-service
+    depends_on:
+      - postgres
+      - otel-collector
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    environment:
+      PORT: 8081
+      DB_DSN: "postgres://demo:demo@postgres:5432/demo?sslmode=disable"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      SERVICE_NAME: "notification-service"
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./logs/notification-service:/var/log/notification-service
+    depends_on:
+      - postgres
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.89.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # metrics
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: jaeger
+    ports:
+      - "16686:16686"   # UI
+      - "14250:14250"   # gRPC
+
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail.yaml
+      - ./logs/order-service:/var/log/order-service
+      - ./logs/notification-service:/var/log/notification-service
+    command: -config.file=/etc/promtail/promtail.yaml
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-provisioning-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    depends_on:
+      - prometheus
+      - loki
+      - jaeger
+
+volumes:
+  postgres_data:

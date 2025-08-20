@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Golang Microservices with OpenTelemetry",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
