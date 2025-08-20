@@ -1,0 +1,55 @@
+meta {
+  name: Get Order by ID (with Product Details)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{orderServiceBaseUrl}}/orders/{{orderId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (!bru.getVar("orderId")) {
+    console.warn("orderId not set. Run 'Create Order' first to set the variable.");
+  }
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return order details", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('order');
+    expect(body.order).to.have.property('id');
+    expect(body.order).to.have.property('product_id');
+    expect(body.order).to.have.property('quantity');
+    expect(body.order).to.have.property('status');
+  });
+  
+  test("should include product details", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('product');
+    if (body.product) {
+      expect(body.product).to.have.property('id');
+      expect(body.product).to.have.property('name');
+      expect(body.product).to.have.property('price');
+      expect(body.product).to.have.property('stock');
+    }
+  });
+  
+  test("should have request_id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('request_id');
+  });
+  
+  test("product_id should match between order and product", function() {
+    const body = res.getBody();
+    if (body.product && body.order) {
+      expect(body.order.product_id).to.equal(body.product.id);
+    }
+  });
+}

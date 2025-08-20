@@ -1,0 +1,54 @@
+meta {
+  name: Create Product
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{orderServiceBaseUrl}}/products
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Gaming Laptop",
+    "description": "High-performance gaming laptop with RTX graphics",
+    "price": 1299.99,
+    "stock": 15
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    const responseBody = res.getBody();
+    if (responseBody && responseBody.id) {
+      bru.setVar("productId", responseBody.id);
+      console.log("Product ID set:", responseBody.id);
+    }
+  }
+}
+
+tests {
+  test("should return 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("should have product id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('id');
+    expect(body.id).to.be.a('string');
+  });
+  
+  test("should have correct product details", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('name', 'Gaming Laptop');
+    expect(body).to.have.property('price', 1299.99);
+    expect(body).to.have.property('stock', 15);
+  });
+  
+  test("should have creation timestamp", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('created_at');
+  });
+}

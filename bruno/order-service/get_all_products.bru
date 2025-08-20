@@ -1,0 +1,47 @@
+meta {
+  name: Get All Products
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{orderServiceBaseUrl}}/products
+  body: none
+  auth: none
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return products array", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('products');
+    expect(body.products).to.be.an('array');
+  });
+  
+  test("should have product count", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('count');
+    expect(body.count).to.be.a('number');
+    expect(body.count).to.equal(body.products.length);
+  });
+  
+  test("should have request_id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('request_id');
+  });
+  
+  test("each product should have required fields", function() {
+    const body = res.getBody();
+    if (body.products.length > 0) {
+      body.products.forEach(product => {
+        expect(product).to.have.property('id');
+        expect(product).to.have.property('name');
+        expect(product).to.have.property('price');
+        expect(product).to.have.property('stock');
+      });
+    }
+  });
+}

@@ -1,7 +1,7 @@
 meta {
   name: Create Order
   type: http
-  seq: 1
+  seq: 7
 }
 
 post {
@@ -12,8 +12,26 @@ post {
 
 body:json {
   {
-    "product_id": "9bdf7d75-e108-4dcd-a506-56acd2f0bcde",
+    "product_id": "{{productId}}",
     "quantity": 2
+  }
+}
+
+script:pre-request {
+  if (!bru.getVar("productId")) {
+    console.warn("productId not set. Run 'Create Product' first to set the variable.");
+    // Fallback to a default product ID for testing
+    bru.setVar("productId", "product-1");
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    const responseBody = res.getBody();
+    if (responseBody && responseBody.id) {
+      bru.setVar("orderId", responseBody.id);
+      console.log("Order ID set:", responseBody.id);
+    }
   }
 }
 
@@ -21,13 +39,32 @@ tests {
   test("should return 201 Created", function() {
     expect(res.getStatus()).to.equal(201);
   });
-  test("should have id", function() {
-    expect(res.getBody()).to.have.property('id');
+  
+  test("should have order id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('id');
+    expect(body.id).to.be.a('string');
   });
-  test("should have product_id", function() {
-    expect(res.getBody()).to.have.property('product_id');
+  
+  test("should have correct product_id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('product_id');
+    expect(body.product_id).to.equal(bru.getVar("productId"));
   });
-  test("should have quantity", function() {
-    expect(res.getBody()).to.have.property('quantity');
+  
+  test("should have correct quantity", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('quantity', 2);
+  });
+  
+  test("should have status pending", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('status', 'pending');
+  });
+  
+  test("should have timestamps", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('created_at');
+    expect(body).to.have.property('updated_at');
   });
 }

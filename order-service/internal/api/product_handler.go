@@ -30,16 +30,16 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	defer span.End()
 
 	requestID := c.GetString("request_id")
-	
+
 	var req models.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		slog.ErrorContext(ctx, "Invalid request payload", 
+		slog.ErrorContext(ctx, "Invalid request payload",
 			"error", err.Error(),
 			"request_id", requestID,
 		)
 		span.RecordError(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request payload",
+			"error":      "Invalid request payload",
 			"request_id": requestID,
 		})
 		return
@@ -53,7 +53,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		)
 		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create product",
+			"error":      "Failed to create product",
 			"request_id": requestID,
 		})
 		return
@@ -79,7 +79,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 
 	requestID := c.GetString("request_id")
 	productID := c.Param("id")
-	
+
 	product, err := h.productRepo.GetByID(ctx, productID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -88,7 +88,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 				"request_id", requestID,
 			)
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Product not found",
+				"error":      "Product not found",
 				"request_id": requestID,
 			})
 			return
@@ -101,7 +101,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 		)
 		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get product",
+			"error":      "Failed to get product",
 			"request_id": requestID,
 		})
 		return
@@ -120,7 +120,7 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	defer span.End()
 
 	requestID := c.GetString("request_id")
-	
+
 	products, err := h.productRepo.GetAll(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to get products",
@@ -129,7 +129,7 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 		)
 		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get products",
+			"error":      "Failed to get products",
 			"request_id": requestID,
 		})
 		return
@@ -140,7 +140,8 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, gin.H{
-		"products": products,
-		"count": len(products),
+		"products":   products,
+		"count":      len(products),
+		"request_id": requestID,
 	})
 }

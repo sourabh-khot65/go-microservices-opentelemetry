@@ -149,11 +149,20 @@ func (s *Server) initHTTPServer() {
 	orderRepo := repository.NewOrderRepository(s.db)
 	productRepo := repository.NewProductRepository(s.db)
 	notificationService := services.NewNotificationService(s.config.NotificationServiceURL)
-	handler := api.NewOrderHandler(orderRepo, productRepo, notificationService)
+	
+	// Order handler
+	orderHandler := api.NewOrderHandler(orderRepo, productRepo, notificationService)
+	// Product handler
+	productHandler := api.NewProductHandler(productRepo)
 
 	// Register business routes
-	router.POST("/orders", handler.CreateOrder)
-	router.GET("/orders/:id", handler.GetOrder)
+	router.POST("/orders", orderHandler.CreateOrder)
+	router.GET("/orders/:id", orderHandler.GetOrder)
+	router.GET("/orders", orderHandler.GetAllOrders)
+	
+	router.POST("/products", productHandler.CreateProduct)
+	router.GET("/products/:id", productHandler.GetProduct)
+	router.GET("/products", productHandler.GetAllProducts)
 
 	// Create HTTP server
 	s.httpServer = &http.Server{

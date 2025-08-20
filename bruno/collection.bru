@@ -7,40 +7,74 @@ meta {
 docs {
   # Go Microservices with OpenTelemetry API Collection
   
-  This collection contains API requests for testing the refactored microservices with comprehensive OpenTelemetry integration using **push model** architecture.
+  This collection tests the refactored microservices with comprehensive OpenTelemetry integration and **automatic variable management** for seamless workflow testing.
   
-  ## Services
+  ## 🚀 Quick Start Workflow
   
-  ### Order Service (Port 8080)
-  - **Create Order**: POST /orders - Create a new order
-  - **Health Check**: GET /health - Service health status
-  - **Readiness**: GET /ready - Service readiness probe
-
-  ### Notification Service (Port 8081)
-  - **Get Notification**: GET /notifications - Get notification endpoint
-  - **Health Check**: GET /health - Service health status
-  - **Readiness**: GET /ready - Service readiness probe
+  **Execute in this order for complete distributed tracing demo:**
   
-  ## Observability Stack
+  1. **Order Service → Create Product** → Sets `productId` automatically
+  2. **Order Service → Create Order** → Uses `productId`, sets `orderId`, triggers notification
+  3. **Order Service → Get Order** → Shows order with product details  
+  4. **Notification Service → Create Notification** → Manual notification test
   
-  - **Prometheus**: http://localhost:9090 - Metrics collection and querying
-  - **Jaeger**: http://localhost:16686 - Distributed tracing UI
-  - **Grafana**: http://localhost:3000 - Dashboards and visualization
+  ## 📡 Service-wise Endpoints (Only Implemented APIs)
   
-  ## Features
+  ### 🛒 Order Service (Port 8080)
+  **Products:**
+  - `POST /products` - Create product (sets productId variable)
+  - `GET /products/:id` - Get product by ID (uses productId)
+  - `GET /products` - Get all products
   
-  - ✅ Distributed tracing with correlation IDs
-  - ✅ OTLP metrics export (push model) to OpenTelemetry Collector  
-  - ✅ Structured logging with trace context
-  - ✅ Health checks and readiness probes
-  - ✅ Graceful shutdown handling
-  - ✅ Production-grade error responses
+  **Orders:**
+  - `POST /orders` - Create order (validates product, sends notification, sets orderId)
+  - `GET /orders/:id` - Get order with product details (uses orderId)
+  - `GET /orders` - Get all orders with pagination
   
-  ## Architecture
+  **Health:**
+  - `GET /health` - Service health status
+  - `GET /ready` - Service readiness probe
   
-  **Push Model**: Services export metrics/traces/logs directly to OpenTelemetry Collector via OTLP protocol.
+  ### 🔔 Notification Service (Port 8081)
+  **Notifications:**
+  - `POST /api/notifications` - Create notification (for testing, sets notificationId)
+  - `GET /api/notifications/:id` - Get notification status (uses notificationId)
+  
+  **Health:**
+  - `GET /health` - Service health status
+  - `GET /ready` - Service readiness probe
+  
+  ## 🔄 Automatic Variable Management
+  
+  **Scripts automatically set these variables:**
+  - `productId` - From Create Product response
+  - `orderId` - From Create Order response  
+  - `notificationId` - From Create Notification response
+  
+  **No manual ID management needed!** 🎉
+  
+  ## 🎯 Observability Stack
+  
+  - **Prometheus**: http://localhost:9090 - Metrics & alerting
+  - **Jaeger**: http://localhost:16686 - Distributed tracing visualization
+  - **Grafana**: http://localhost:3000 - Dashboards
+  
+  ## ✨ Distributed Tracing Features
+  
+  - ✅ **Cross-service trace propagation** via HTTP headers
+  - ✅ **Structured logging** with automatic trace correlation  
+  - ✅ **Error tracking** with span error recording
+  - ✅ **Performance monitoring** with latency metrics
+  - ✅ **Request correlation** with unique request IDs
+  
+  ## 🏗️ Architecture: OTLP Push Model
   
   ```
-  Microservices → OpenTelemetry Collector → Prometheus/Jaeger/Loki
+  Order Service ──┐
+                  ├─→ OpenTelemetry Collector ──┐
+  Notification ───┘                              ├─→ Prometheus/Jaeger/Loki
+  Service                                        └─→ Grafana Dashboards
   ```
+  
+  **Benefits**: Real-time telemetry, no scraping overhead, centralized collection
 }

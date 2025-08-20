@@ -1,13 +1,20 @@
 meta {
-  name: Get Notification
+  name: Get Notification by ID
   type: http
-  seq: 1
+  seq: 4
 }
 
 get {
-  url: {{notificationServiceBaseUrl}}/notifications
+  url: {{notificationServiceBaseUrl}}/api/notifications/{{notificationId}}
   body: none
   auth: none
+}
+
+script:pre-request {
+  if (!bru.getVar("notificationId")) {
+    console.warn("notificationId not set. Run 'Create Notification' first or using default ID.");
+    bru.setVar("notificationId", "test-notification-123");
+  }
 }
 
 tests {
@@ -25,5 +32,11 @@ tests {
   
   test("should have request_id for tracing", function() {
     expect(res.getBody()).to.have.property('request_id');
+  });
+  
+  test("should indicate notifications are logged not stored", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('note');
+    expect(body.note).to.include('logged');
   });
 }

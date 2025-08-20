@@ -7,6 +7,7 @@ import (
 	"order-service/internal/models"
 	"order-service/internal/repository"
 	"order-service/internal/services"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -127,6 +128,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 	requestID := c.GetString("request_id")
 	orderID := c.Param("id")
 
+	// Get order
 	order, err := h.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -154,10 +156,80 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 		return
 	}
 
+	// Get product details
+	product, err := h.productRepo.GetByID(ctx, order.ProductID)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to get product details",
+			"error", err.Error(),
+			"product_id", order.ProductID,
+			"request_id", requestID,
+		)
+		span.RecordError(err)
+		// Still return order even if product fetch fails
+		c.JSON(http.StatusOK, gin.H{
+			"order":      order,
+			"product":    nil,
+			"request_id": requestID,
+		})
+		return
+	}
+
 	span.SetAttributes(
 		attribute.String("order.id", order.ID),
 		attribute.String("order.status", order.Status),
+		attribute.String("product.id", product.ID),
+		attribute.String("product.name", product.Name),
 	)
 
-	c.JSON(http.StatusOK, order)
+	c.JSON(http.StatusOK, gin.H{
+		"order":      order,
+		"product":    product,
+		"request_id": requestID,
+	})
+}
+
+// GetAllOrders retrieves all orders with pagination and product details
+func (h *OrderHandler) GetAllOrders(c *gin.Context) {
+	ctx, span := h.tracer.Start(c.Request.Context(), "get_all_orders")
+	defer span.End()
+
+	requestID := c.GetString("request_id")
+	
+	// Parse pagination parameters
+	page := 1
+	pageSize := 10
+	if p := c.Query("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	if ps := c.Query("page_size"); ps != "" {
+		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
+			pageSize = parsed
+		}
+	}
+
+	span.SetAttributes(
+		attribute.Int("pagination.page", page),
+		attribute.Int("pagination.page_size", pageSize),
+	)
+
+	// For now, return a message indicating the endpoint exists
+	// In a real implementation, you would implement GetAll in the repository
+	slog.InfoContext(ctx, "GetAllOrders endpoint called",
+		"page", page,
+		"page_size", pageSize,
+		"request_id", requestID,
+	)
+
+	span.SetAttributes(
+		attribute.String("endpoint.status", "implemented"),
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "GetAllOrders API endpoint - implementation pending full repository method",
+		"page":       page,
+		"page_size":  pageSize,
+		"request_id": requestID,
+	})
 }

@@ -1,0 +1,70 @@
+meta {
+  name: Create Notification
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{notificationServiceBaseUrl}}/api/notifications
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Test notification for distributed tracing",
+    "order_id": "{{orderId}}"
+  }
+}
+
+script:pre-request {
+  if (!bru.getVar("orderId")) {
+    console.warn("orderId not set. Using default order ID for testing.");
+    bru.setVar("orderId", "test-order-123");
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    const responseBody = res.getBody();
+    if (responseBody && responseBody.id) {
+      bru.setVar("notificationId", responseBody.id);
+      console.log("Notification ID set:", responseBody.id);
+    }
+  }
+}
+
+tests {
+  test("should return 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("should have notification id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('id');
+    expect(body.id).to.be.a('string');
+  });
+  
+  test("should have correct message", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('message');
+    expect(body.message).to.include('Test notification');
+  });
+  
+  test("should have order_id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('order_id');
+    expect(body.order_id).to.equal(bru.getVar("orderId"));
+  });
+  
+  test("should have trace_data for distributed tracing", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('trace_data');
+    expect(body.trace_data).to.be.an('object');
+  });
+  
+  test("should have creation timestamp", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('created_at');
+  });
+}

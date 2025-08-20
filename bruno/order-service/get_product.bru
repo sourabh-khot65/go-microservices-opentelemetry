@@ -1,0 +1,39 @@
+meta {
+  name: Get Product by ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{orderServiceBaseUrl}}/products/{{productId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (!bru.getVar("productId")) {
+    console.warn("productId not set. Run 'Create Product' first to set the variable.");
+  }
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return product details", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('id');
+    expect(body).to.have.property('name');
+    expect(body).to.have.property('price');
+    expect(body).to.have.property('stock');
+  });
+  
+  test("should have valid price and stock", function() {
+    const body = res.getBody();
+    expect(body.price).to.be.a('number');
+    expect(body.stock).to.be.a('number');
+    expect(body.price).to.be.greaterThan(0);
+    expect(body.stock).to.be.greaterThanOrEqual(0);
+  });
+}
