@@ -9,6 +9,7 @@ import (
 
 // Config holds all configuration for the service
 type Config struct {
+	NotificationServiceURL string
 	// Server configuration
 	Port         string
 	Host         string
@@ -48,6 +49,7 @@ type Config struct {
 // Load loads configuration from environment variables with sensible defaults
 func Load() *Config {
 	return &Config{
+		NotificationServiceURL: getEnv("NOTIFICATION_SERVICE_URL", "http://localhost:8082"),
 		// Server
 		Port:         getEnv("PORT", "8080"),
 		Host:         getEnv("HOST", "0.0.0.0"),

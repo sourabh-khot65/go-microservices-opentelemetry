@@ -14,6 +14,6 @@ func NewOrderService(repo *repository.OrderRepository) *OrderService {
 	return &OrderService{Repo: repo}
 }
 
-func (s *OrderService) CreateOrder(ctx context.Context, order *models.Order) error {
-	return s.Repo.Create(ctx, order)
+func (s *OrderService) CreateOrder(ctx context.Context, req *models.CreateOrderRequest) (*models.Order, error) {
+	return s.Repo.Create(ctx, req)
 }

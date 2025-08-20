@@ -3,9 +3,9 @@ services:
     image: postgres:15-alpine
     container_name: postgres
     environment:
-      POSTGRES_USER: demo
-      POSTGRES_PASSWORD: demo
-      POSTGRES_DB: demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: online_orders
     ports:
       - "5432:5432"
     volumes:
@@ -16,9 +16,10 @@ services:
     container_name: order-service
     environment:
       PORT: 8080
-      DB_DSN: "postgres://demo:demo@postgres:5432/demo?sslmode=disable"
+      DB_DSN: "postgres://postgres:postgres@postgres:5432/online_orders?sslmode=disable"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       SERVICE_NAME: "order-service"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:8081"
     ports:
       - "8080:8080"
     volumes:
@@ -32,7 +33,7 @@ services:
     container_name: notification-service
     environment:
       PORT: 8081
-      DB_DSN: "postgres://demo:demo@postgres:5432/demo?sslmode=disable"
+      DB_DSN: "postgres://postgres:postgres@postgres:5432/online_orders?sslmode=disable"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       SERVICE_NAME: "notification-service"
     ports:

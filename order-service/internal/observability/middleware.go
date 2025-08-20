@@ -86,13 +86,7 @@ func (m *Middleware) MetricsMiddleware() gin.HandlerFunc {
 // StructuredLoggingMiddleware provides structured request logging with correlation
 func (m *Middleware) StructuredLoggingMiddleware() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		// Extract trace context for correlation
-		traceID := ""
-		spanID := ""
-		if span := trace.SpanFromContext(param.Request.Context()); span.SpanContext().IsValid() {
-			traceID = span.SpanContext().TraceID().String()
-			spanID = span.SpanContext().SpanID().String()
-		}
+		// Trace correlation is automatically handled by CorrelationHandler in logging.go
 
 		slog.InfoContext(param.Request.Context(), "HTTP Request",
 			"timestamp", param.TimeStamp.Format(time.RFC3339),
@@ -104,8 +98,6 @@ func (m *Middleware) StructuredLoggingMiddleware() gin.HandlerFunc {
 			"user_agent", param.Request.UserAgent(),
 			"bytes_in", param.Request.ContentLength,
 			"bytes_out", param.BodySize,
-			"trace_id", traceID,
-			"span_id", spanID,
 			"service", m.serviceName,
 		)
 		return ""

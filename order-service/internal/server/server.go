@@ -16,7 +16,7 @@ import (
 	"order-service/internal/config"
 	"order-service/internal/observability"
 	"order-service/internal/repository"
-	"order-service/internal/service"
+	"order-service/internal/services"
 
 	"github.com/XSAM/otelsql"
 	"github.com/gin-gonic/gin"
@@ -146,12 +146,14 @@ func (s *Server) initHTTPServer() {
 	router.GET(s.config.ReadinessPath, middleware.ReadinessHandler())
 
 	// Business logic setup
-	repo := repository.NewOrderRepository(s.db)
-	svc := service.NewOrderService(repo)
-	handler := api.NewOrderHandler(svc)
+	orderRepo := repository.NewOrderRepository(s.db)
+	productRepo := repository.NewProductRepository(s.db)
+	notificationService := services.NewNotificationService(s.config.NotificationServiceURL)
+	handler := api.NewOrderHandler(orderRepo, productRepo, notificationService)
 
 	// Register business routes
-	handler.RegisterRoutes(router)
+	router.POST("/orders", handler.CreateOrder)
+	router.GET("/orders/:id", handler.GetOrder)
 
 	// Create HTTP server
 	s.httpServer = &http.Server{

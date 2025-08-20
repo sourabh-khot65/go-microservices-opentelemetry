@@ -12,8 +12,8 @@ post {
 
 body:json {
   {
-    "id": "order-123",
-    "items": ["laptop", "mouse", "keyboard"]
+    "product_id": "9bdf7d75-e108-4dcd-a506-56acd2f0bcde",
+    "quantity": 2
   }
 }
 
@@ -21,16 +21,13 @@ tests {
   test("should return 201 Created", function() {
     expect(res.getStatus()).to.equal(201);
   });
-  
-  test("should have order in response", function() {
-    expect(res.getBody()).to.have.property('order');
+  test("should have id", function() {
+    expect(res.getBody()).to.have.property('id');
   });
-  
-  test("should have success message", function() {
-    expect(res.getBody()).to.have.property('message', 'Order created successfully');
+  test("should have product_id", function() {
+    expect(res.getBody()).to.have.property('product_id');
   });
-  
-  test("should have request_id for tracing", function() {
-    expect(res.getBody()).to.have.property('request_id');
+  test("should have quantity", function() {
+    expect(res.getBody()).to.have.property('quantity');
   });
 }
