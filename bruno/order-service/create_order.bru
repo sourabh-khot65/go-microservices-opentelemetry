@@ -12,11 +12,25 @@ post {
 
 body:json {
   {
-    "items": [
-      {
-        "product_code": "p1",
-        "quantity": 1
-      }
-    ]
+    "id": "order-123",
+    "items": ["laptop", "mouse", "keyboard"]
   }
+}
+
+tests {
+  test("should return 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("should have order in response", function() {
+    expect(res.getBody()).to.have.property('order');
+  });
+  
+  test("should have success message", function() {
+    expect(res.getBody()).to.have.property('message', 'Order created successfully');
+  });
+  
+  test("should have request_id for tracing", function() {
+    expect(res.getBody()).to.have.property('request_id');
+  });
 }

@@ -1,19 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
-	"notification-service/internal/api"
 	"notification-service/internal/config"
-	"notification-service/internal/otel"
+	"notification-service/internal/server"
 )
 
 func main() {
+	// Load configuration
 	cfg := config.Load()
-	otel.Shutdown = otel.Init(cfg.ServiceName, cfg.OtelEndpoint)
-	defer otel.Shutdown()
 
-	handler := api.NewNotificationHandler()
-	router := handler.Router()
-	log.Printf("Starting notification-service on :%s", cfg.Port)
-	log.Fatal(router.Run(":" + cfg.Port))
+	// Create and start server
+	srv := server.New(cfg)
+	
+	ctx := context.Background()
+	if err := srv.Start(ctx); err != nil {
+		log.Fatalf("Server error: %v", err)
+	}
 }

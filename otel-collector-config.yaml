@@ -20,6 +20,9 @@ processors:
   batch:
 
 service:
+  telemetry:
+    metrics:
+      address: ":8889"
   pipelines:
     traces:
       receivers: [otlp]

@@ -1,0 +1,40 @@
+meta {
+  name: Go Microservices with OpenTelemetry
+  type: collection
+  version: 2.0
+}
+
+docs {
+  # Go Microservices with OpenTelemetry API Collection
+  
+  This collection contains API requests for testing the refactored microservices with comprehensive OpenTelemetry integration.
+  
+  ## Services
+  
+  ### Order Service (Port 8080)
+  - **Create Order**: POST /orders - Create a new order
+  - **Health Check**: GET /health - Service health status
+  - **Readiness**: GET /ready - Service readiness probe
+  - **Metrics**: GET /metrics - Prometheus metrics endpoint
+  
+  ### Notification Service (Port 8081)
+  - **Get Notification**: GET /notifications - Get notification endpoint
+  - **Health Check**: GET /health - Service health status
+  - **Readiness**: GET /ready - Service readiness probe
+  - **Metrics**: GET /metrics - Prometheus metrics endpoint
+  
+  ## Observability Stack
+  
+  - **Prometheus**: http://localhost:9090 - Metrics collection and querying
+  - **Jaeger**: http://localhost:16686 - Distributed tracing UI
+  - **Grafana**: http://localhost:3000 - Dashboards and visualization
+  
+  ## Features
+  
+  -  Distributed tracing with correlation IDs
+  -  Prometheus metrics with custom business metrics
+  -  Structured logging with trace context
+  -  Health checks and readiness probes
+  -  Graceful shutdown handling
+  -  Production-grade error responses
+}

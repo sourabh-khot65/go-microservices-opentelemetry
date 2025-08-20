@@ -1,0 +1,26 @@
+meta {
+  name: Notification Service Metrics
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{notificationServiceBaseUrl}}/metrics
+  body: none
+  auth: none
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return prometheus metrics", function() {
+    expect(res.getBody()).to.contain('# TYPE');
+    expect(res.getBody()).to.contain('# HELP');
+  });
+  
+  test("should have http metrics", function() {
+    expect(res.getBody()).to.contain('http_requests_total');
+  });
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Notification Service Health Check
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{notificationServiceBaseUrl}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have service name", function() {
+    expect(res.getBody()).to.have.property('service', 'notification-service');
+  });
+  
+  test("should be healthy", function() {
+    expect(res.getBody()).to.have.property('status', 'healthy');
+  });
+}

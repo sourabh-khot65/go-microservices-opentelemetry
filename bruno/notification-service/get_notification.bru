@@ -4,8 +4,26 @@ meta {
   seq: 1
 }
 
-post {
+get {
   url: {{notificationServiceBaseUrl}}/notifications
   body: none
   auth: none
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have service info in response", function() {
+    expect(res.getBody()).to.have.property('service', 'notification-service');
+  });
+  
+  test("should have success message", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+  
+  test("should have request_id for tracing", function() {
+    expect(res.getBody()).to.have.property('request_id');
+  });
 }
