@@ -62,7 +62,6 @@ func Load() *Config {
 		// Health checks
 		HealthCheckPath: getEnv("HEALTH_CHECK_PATH", "/health"),
 		ReadinessPath:   getEnv("READINESS_PATH", "/ready"),
-		MetricsPath:     getEnv("METRICS_PATH", "/metrics"),
 
 		// Feature flags
 		EnableMetrics: getBool("ENABLE_METRICS", true),
