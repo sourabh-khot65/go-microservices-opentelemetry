@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,10 +26,8 @@ func NewMiddleware(serviceName string, metrics *Metrics) *Middleware {
 	}
 }
 
-// MetricsHandler returns the Prometheus metrics endpoint handler
-func (m *Middleware) MetricsHandler() gin.HandlerFunc {
-	return gin.WrapH(promhttp.Handler())
-}
+// Note: Metrics are exported via OTLP to OpenTelemetry Collector
+// No Prometheus scraping endpoint needed
 
 // HealthCheckHandler returns a health check endpoint
 func (m *Middleware) HealthCheckHandler() gin.HandlerFunc {

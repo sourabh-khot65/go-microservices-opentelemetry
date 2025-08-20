@@ -1,12 +1,11 @@
 global:
   scrape_interval: 15s
+
 scrape_configs:
+  # Only scrape metrics from OpenTelemetry Collector
+  # Services push their metrics via OTLP to the collector
   - job_name: 'otel-collector'
     static_configs:
       - targets: ['otel-collector:8888']
-  - job_name: 'order-service'
-    static_configs:
-      - targets: ['order-service:8080']
-  - job_name: 'notification-service'
-    static_configs:
-      - targets: ['notification-service:8081']
+    scrape_interval: 15s
+    metrics_path: /metrics

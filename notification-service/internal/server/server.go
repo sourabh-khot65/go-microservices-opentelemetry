@@ -103,10 +103,8 @@ func (s *Server) initHTTPServer() {
 	router.GET(s.config.HealthCheckPath, middleware.HealthCheckHandler())
 	router.GET(s.config.ReadinessPath, middleware.ReadinessHandler())
 
-	// Metrics endpoint
-	if s.config.EnableMetrics {
-		router.GET(s.config.MetricsPath, middleware.MetricsHandler())
-	}
+	// Note: Metrics are exported via OTLP to OpenTelemetry Collector
+	// No /metrics endpoint needed
 
 	// Business logic setup
 	handler := api.NewNotificationHandler()

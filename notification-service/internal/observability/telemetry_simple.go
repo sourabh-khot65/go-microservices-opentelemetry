@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -56,7 +55,7 @@ func NewSimpleTelemetry(config TelemetryConfig) (*SimpleTelemetry, error) {
 		propagation.Baggage{},
 	))
 
-	slog.Info("Telemetry initialized successfully", 
+	slog.Info("Telemetry initialized successfully",
 		"service", config.ServiceName,
 		"endpoint", config.OtelEndpoint,
 		"environment", config.Environment,
@@ -107,18 +106,12 @@ func (t *SimpleTelemetry) initMetrics(endpoint string) error {
 		return fmt.Errorf("failed to create metric exporter: %w", err)
 	}
 
-	// Also create Prometheus exporter for direct scraping
-	prometheusExporter, err := prometheus.New()
-	if err != nil {
-		return fmt.Errorf("failed to create prometheus exporter: %w", err)
-	}
-
+	// Use only OTLP export - no Prometheus scraping endpoint
 	t.metricProvider = metric.NewMeterProvider(
 		metric.WithResource(t.resource),
 		metric.WithReader(metric.NewPeriodicReader(metricExporter,
 			metric.WithInterval(15*time.Second),
 		)),
-		metric.WithReader(prometheusExporter),
 	)
 
 	otel.SetMeterProvider(t.metricProvider)

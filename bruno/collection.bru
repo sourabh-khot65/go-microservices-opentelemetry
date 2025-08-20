@@ -7,7 +7,7 @@ meta {
 docs {
   # Go Microservices with OpenTelemetry API Collection
   
-  This collection contains API requests for testing the refactored microservices with comprehensive OpenTelemetry integration.
+  This collection contains API requests for testing the refactored microservices with comprehensive OpenTelemetry integration using **push model** architecture.
   
   ## Services
   
@@ -15,13 +15,11 @@ docs {
   - **Create Order**: POST /orders - Create a new order
   - **Health Check**: GET /health - Service health status
   - **Readiness**: GET /ready - Service readiness probe
-  - **Metrics**: GET /metrics - Prometheus metrics endpoint
   
   ### Notification Service (Port 8081)
   - **Get Notification**: GET /notifications - Get notification endpoint
   - **Health Check**: GET /health - Service health status
   - **Readiness**: GET /ready - Service readiness probe
-  - **Metrics**: GET /metrics - Prometheus metrics endpoint
   
   ## Observability Stack
   
@@ -31,10 +29,20 @@ docs {
   
   ## Features
   
-  -  Distributed tracing with correlation IDs
-  -  Prometheus metrics with custom business metrics
-  -  Structured logging with trace context
-  -  Health checks and readiness probes
-  -  Graceful shutdown handling
-  -  Production-grade error responses
+  - ✅ Distributed tracing with correlation IDs
+  - ✅ OTLP metrics export (push model) to OpenTelemetry Collector  
+  - ✅ Structured logging with trace context
+  - ✅ Health checks and readiness probes
+  - ✅ Graceful shutdown handling
+  - ✅ Production-grade error responses
+  
+  ## Architecture
+  
+  **Push Model**: Services export metrics/traces/logs directly to OpenTelemetry Collector via OTLP protocol.
+  
+  ```
+  Microservices → OpenTelemetry Collector → Prometheus/Jaeger/Loki
+  ```
+  
+  No `/metrics` endpoints needed - all telemetry data flows through OTLP.
 }

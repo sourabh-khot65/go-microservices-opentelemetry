@@ -17,25 +17,25 @@ type Config struct {
 	IdleTimeout  time.Duration
 
 	// OpenTelemetry configuration
-	OtelEndpoint     string
-	ServiceName      string
-	ServiceVersion   string
-	Environment      string
-	SampleRate       float64
+	OtelEndpoint   string
+	ServiceName    string
+	ServiceVersion string
+	Environment    string
+	SampleRate     float64
 
 	// Logging configuration
-	LogLevel         string
-	LogFormat        string // json or text
+	LogLevel  string
+	LogFormat string // json or text
 
 	// Health check configuration
-	HealthCheckPath  string
-	ReadinessPath    string
-	MetricsPath      string
+	HealthCheckPath string
+	ReadinessPath   string
+	MetricsPath     string
 
 	// Feature flags
-	EnableMetrics    bool
-	EnableTracing    bool
-	EnableLogging    bool
+	EnableMetrics bool
+	EnableTracing bool
+	EnableLogging bool
 }
 
 // Load loads configuration from environment variables with sensible defaults
@@ -49,25 +49,25 @@ func Load() *Config {
 		IdleTimeout:  getDuration("IDLE_TIMEOUT", 120*time.Second),
 
 		// OpenTelemetry
-		OtelEndpoint:     getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317"),
-		ServiceName:      getEnv("SERVICE_NAME", "notification-service"),
-		ServiceVersion:   getEnv("SERVICE_VERSION", "1.0.0"),
-		Environment:      getEnv("ENVIRONMENT", "development"),
-		SampleRate:       getFloat64("OTEL_SAMPLE_RATE", 1.0),
+		OtelEndpoint:   getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317"),
+		ServiceName:    getEnv("SERVICE_NAME", "notification-service"),
+		ServiceVersion: getEnv("SERVICE_VERSION", "1.0.0"),
+		Environment:    getEnv("ENVIRONMENT", "development"),
+		SampleRate:     getFloat64("OTEL_SAMPLE_RATE", 1.0),
 
 		// Logging
-		LogLevel:         getEnv("LOG_LEVEL", "info"),
-		LogFormat:        getEnv("LOG_FORMAT", "json"),
+		LogLevel:  getEnv("LOG_LEVEL", "info"),
+		LogFormat: getEnv("LOG_FORMAT", "json"),
 
 		// Health checks
-		HealthCheckPath:  getEnv("HEALTH_CHECK_PATH", "/health"),
-		ReadinessPath:    getEnv("READINESS_PATH", "/ready"),
-		MetricsPath:      getEnv("METRICS_PATH", "/metrics"),
+		HealthCheckPath: getEnv("HEALTH_CHECK_PATH", "/health"),
+		ReadinessPath:   getEnv("READINESS_PATH", "/ready"),
+		MetricsPath:     getEnv("METRICS_PATH", "/metrics"),
 
 		// Feature flags
-		EnableMetrics:    getBool("ENABLE_METRICS", true),
-		EnableTracing:    getBool("ENABLE_TRACING", true),
-		EnableLogging:    getBool("ENABLE_LOGGING", true),
+		EnableMetrics: getBool("ENABLE_METRICS", true),
+		EnableTracing: getBool("ENABLE_TRACING", true),
+		EnableLogging: getBool("ENABLE_LOGGING", true),
 	}
 }
 
