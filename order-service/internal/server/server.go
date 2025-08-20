@@ -87,8 +87,16 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) initDatabase() error {
-	// Register instrumented driver
-	driverName, err := otelsql.Register("pgx", otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
+	// Register instrumented driver with comprehensive attributes
+	driverName, err := otelsql.Register("pgx",
+		otelsql.WithAttributes(
+			semconv.DBSystemPostgreSQL,
+			semconv.DBNameKey.String("order_service"),
+			semconv.ServiceNameKey.String(s.config.ServiceName),
+		),
+		// Enable detailed database metrics and performance tracking
+		otelsql.WithSQLCommenter(true),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to register otel pgx: %w", err)
 	}
@@ -149,7 +157,7 @@ func (s *Server) initHTTPServer() {
 	orderRepo := repository.NewOrderRepository(s.db)
 	productRepo := repository.NewProductRepository(s.db)
 	notificationService := services.NewNotificationService(s.config.NotificationServiceURL)
-	
+
 	// Order handler
 	orderHandler := api.NewOrderHandler(orderRepo, productRepo, notificationService)
 	// Product handler
@@ -159,7 +167,7 @@ func (s *Server) initHTTPServer() {
 	router.POST("/orders", orderHandler.CreateOrder)
 	router.GET("/orders/:id", orderHandler.GetOrder)
 	router.GET("/orders", orderHandler.GetAllOrders)
-	
+
 	router.POST("/products", productHandler.CreateProduct)
 	router.GET("/products/:id", productHandler.GetProduct)
 	router.GET("/products", productHandler.GetAllProducts)

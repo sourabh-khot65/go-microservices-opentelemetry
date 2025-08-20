@@ -3,12 +3,12 @@ package api
 import (
 	"database/sql"
 	"log/slog"
+	"math"
 	"net/http"
 	"order-service/internal/models"
 	"order-service/internal/repository"
 	"order-service/internal/services"
 	"strconv"
-	"math"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -195,7 +195,7 @@ func (h *OrderHandler) GetAllOrders(c *gin.Context) {
 	defer span.End()
 
 	requestID := c.GetString("request_id")
-	
+
 	// Parse pagination parameters
 	page := 1
 	pageSize := 10
