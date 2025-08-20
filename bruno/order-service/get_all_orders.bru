@@ -15,20 +15,47 @@ tests {
     expect(res.getStatus()).to.equal(200);
   });
   
-  test("should return message about implementation", function() {
+  test("should return success response", function() {
     const body = res.getBody();
-    expect(body).to.have.property('message');
-    expect(body.message).to.include('GetAllOrders API endpoint');
+    expect(body).to.have.property('success', true);
   });
   
-  test("should have pagination parameters", function() {
+  test("should have orders data", function() {
     const body = res.getBody();
-    expect(body).to.have.property('page', 1);
-    expect(body).to.have.property('page_size', 10);
+    expect(body).to.have.property('data');
+    expect(body.data).to.be.an('array');
+  });
+  
+  test("should have pagination metadata", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('pagination');
+    expect(body.pagination).to.have.property('page', 1);
+    expect(body.pagination).to.have.property('page_size', 10);
+    expect(body.pagination).to.have.property('total');
+    expect(body.pagination).to.have.property('total_pages');
   });
   
   test("should have request_id", function() {
     const body = res.getBody();
     expect(body).to.have.property('request_id');
+  });
+  
+  test("each order should have order and product details", function() {
+    const body = res.getBody();
+    if (body.data && body.data.length > 0) {
+      body.data.forEach(item => {
+        expect(item).to.have.property('order');
+        expect(item.order).to.have.property('id');
+        expect(item.order).to.have.property('product_id');
+        expect(item.order).to.have.property('quantity');
+        expect(item.order).to.have.property('status');
+        // Product may be null if product fetch fails
+        if (item.product) {
+          expect(item.product).to.have.property('id');
+          expect(item.product).to.have.property('name');
+          expect(item.product).to.have.property('price');
+        }
+      });
+    }
   });
 }

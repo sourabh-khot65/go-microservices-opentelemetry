@@ -49,3 +49,43 @@ func (r *OrderRepository) GetByID(ctx context.Context, id string) (*models.Order
 	}
 	return order, nil
 }
+
+func (r *OrderRepository) GetAll(ctx context.Context, page, pageSize int) ([]*models.Order, int64, error) {
+	offset := (page - 1) * pageSize
+
+	// Get total count
+	var total int64
+	err := r.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM orders`).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Get orders with pagination
+	rows, err := r.DB.QueryContext(ctx,
+		`SELECT id, product_id, quantity, status, created_at, updated_at 
+		 FROM orders 
+		 ORDER BY created_at DESC 
+		 LIMIT $1 OFFSET $2`,
+		pageSize, offset,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var orders []*models.Order
+	for rows.Next() {
+		order := &models.Order{}
+		err := rows.Scan(&order.ID, &order.ProductID, &order.Quantity, &order.Status, &order.CreatedAt, &order.UpdatedAt)
+		if err != nil {
+			return nil, 0, err
+		}
+		orders = append(orders, order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return orders, total, nil
+}

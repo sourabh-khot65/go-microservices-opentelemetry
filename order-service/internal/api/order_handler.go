@@ -8,6 +8,7 @@ import (
 	"order-service/internal/repository"
 	"order-service/internal/services"
 	"strconv"
+	"math"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -214,22 +215,65 @@ func (h *OrderHandler) GetAllOrders(c *gin.Context) {
 		attribute.Int("pagination.page_size", pageSize),
 	)
 
-	// For now, return a message indicating the endpoint exists
-	// In a real implementation, you would implement GetAll in the repository
-	slog.InfoContext(ctx, "GetAllOrders endpoint called",
+	// Get orders from repository
+	orders, total, err := h.orderRepo.GetAll(ctx, page, pageSize)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to get orders",
+			"error", err.Error(),
+			"request_id", requestID,
+		)
+		span.RecordError(err)
+		response := models.CreateErrorResponse("Failed to get orders", "INTERNAL_ERROR", requestID)
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// Calculate pagination metadata
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	pagination := &models.Pagination{
+		Page:       page,
+		PageSize:   pageSize,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	// Get product details for each order
+	ordersWithProducts := make([]*models.OrderWithProduct, 0, len(orders))
+	for _, order := range orders {
+		orderWithProduct := &models.OrderWithProduct{
+			Order: order,
+		}
+
+		// Try to get product details
+		if product, err := h.productRepo.GetByID(ctx, order.ProductID); err == nil {
+			orderWithProduct.Product = product
+		} else {
+			slog.WarnContext(ctx, "Failed to get product details for order",
+				"error", err.Error(),
+				"order_id", order.ID,
+				"product_id", order.ProductID,
+				"request_id", requestID,
+			)
+			// Continue without product details
+		}
+
+		ordersWithProducts = append(ordersWithProducts, orderWithProduct)
+	}
+
+	slog.InfoContext(ctx, "GetAllOrders completed successfully",
 		"page", page,
 		"page_size", pageSize,
+		"total", total,
+		"returned_count", len(ordersWithProducts),
 		"request_id", requestID,
 	)
 
 	span.SetAttributes(
-		attribute.String("endpoint.status", "implemented"),
+		attribute.Int64("orders.total", total),
+		attribute.Int("orders.returned", len(ordersWithProducts)),
+		attribute.String("endpoint.status", "success"),
 	)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":    "GetAllOrders API endpoint - implementation pending full repository method",
-		"page":       page,
-		"page_size":  pageSize,
-		"request_id": requestID,
-	})
+	response := models.CreatePaginatedResponse(ordersWithProducts, pagination, requestID)
+	c.JSON(http.StatusOK, response)
 }
