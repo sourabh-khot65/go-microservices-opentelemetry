@@ -26,14 +26,18 @@ scrape_configs:
       - replacement: /var/lib/docker/containers/*/*.log
         target_label: __path__
     pipeline_stages:
+      # First, parse the Docker log wrapper
       - json:
           expressions:
-            output: log
+            log_line: log
             stream: stream
-            timestamp: time
+            docker_timestamp: time
+      
+      # Then parse the actual application JSON log from the log_line
       - json:
-          source: output
+          source: log_line
           expressions:
+            app_time: time
             level: level
             message: msg
             trace_id: trace_id
@@ -44,17 +48,38 @@ scrape_configs:
             product_id: product_id
             notification_id: notification_id
             error: error
+            source: source
+      
+      # Use the application timestamp if available, otherwise Docker timestamp
       - timestamp:
-          source: timestamp
+          source: app_time
           format: RFC3339Nano
+      
+      # Set labels for filtering
       - labels:
           level: level
           service: service
+          stream: stream
+      
+      # Add trace correlation labels when available
       - match:
           selector: '{trace_id!=""}'
           stages:
             - labels:
                 trace_id: trace_id
+        
+      - match:
+          selector: '{span_id!=""}'
+          stages:
+            - labels:
                 span_id: span_id
+                
+      - match:
+          selector: '{request_id!=""}'
+          stages:
+            - labels:
+                request_id: request_id
+      
+      # Output the message content
       - output:
           source: message
